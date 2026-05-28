@@ -12,7 +12,7 @@ function Navbar() {
   };
 
   return (
-    <nav style={{ padding: '1rem', borderBottom: '1px solid #ccc', display: 'flex', gap: '1rem' }}>
+    <nav style={{ padding: '1rem', borderBottom: '2px solid #6F4E37', display: 'flex', gap: '1rem' }}>
       {token ? (
         <>
           <span>Hi, {username}</span>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 function Register() {
   const [email, setEmail] = useState('');
@@ -22,14 +22,15 @@ function Register() {
 
   return (
     <div style={{ padding: '1rem' }}>
-      <h1>Register</h1>
+      <h1>Join the community</h1>
       {message && <p>{message}</p>}
       <form onSubmit={handleSubmit}>
-        <div><input placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} /></div>
-        <div><input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} /></div>
-        <div><input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} /></div>
-        <button type="submit">Register</button>
+        <div><input placeholder="choose a username" value={username} onChange={e => setUsername(e.target.value)} /></div>
+        <div><input placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} /></div>
+        <div><input placeholder="at least 6 characters" type="password" value={password} onChange={e => setPassword(e.target.value)} /></div>
+        <button type="submit">Create Account</button>
       </form>
+      <p>Already have an account? <Link to="/login">Log in</Link></p>
     </div>
   );
 }
