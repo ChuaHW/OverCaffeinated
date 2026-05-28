@@ -13,6 +13,7 @@ function Navbar() {
 
   return (
     <nav style={{ padding: '1rem', borderBottom: '2px solid #6F4E37', display: 'flex', gap: '1rem' }}>
+      <Link to="/">Cafes</Link>
       {token ? (
         <>
           <span>Hi, {username}</span>
