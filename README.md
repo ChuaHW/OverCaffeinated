@@ -30,15 +30,17 @@ A community-driven web platform for cafe enthusiasts to discover and review spec
 1. Navigate to the server folder: `cd server`
 2. Install dependencies: `npm install`
 3. Create a `.env` file with the following:
-    DB_HOST=127.0.0.1
-    DB_USER=root
-    DB_PASSWORD=your_mysql_password
-    DB_NAME=overcaffeinated
-    JWT_SECRET=your_jwt_secret
-    MAILTRAP_HOST=sandbox.smtp.mailtrap.io
-    MAILTRAP_PORT=2525
-    MAILTRAP_USER=your_mailtrap_user
-    MAILTRAP_PASS=your_mailtrap_password
+```
+DB_HOST=127.0.0.1
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=overcaffeinated
+JWT_SECRET=your_jwt_secret
+MAILTRAP_HOST=sandbox.smtp.mailtrap.io
+MAILTRAP_PORT=2525
+MAILTRAP_USER=your_mailtrap_user
+MAILTRAP_PASS=your_mailtrap_password
+```
 4. Start the server: `node index.js`
 
 ### Frontend
