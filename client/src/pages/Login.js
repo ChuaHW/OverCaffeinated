@@ -30,6 +30,7 @@ function Login() {
         <button type="submit">Login</button>
       </form>
       <p>New here? <Link to="/register">Create an account</Link></p>
+      <p>Forgot your password? <Link to="/forgot-password">Reset it here</Link></p>
     </div>
   );
 }
