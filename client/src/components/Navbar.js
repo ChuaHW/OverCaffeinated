@@ -17,6 +17,7 @@ function Navbar() {
       {token ? (
         <>
           <span>Hi, {username}</span>
+          <Link to="/profile">Profile</Link>
           <button onClick={logout}>Logout</button>
         </>
       ) : (
