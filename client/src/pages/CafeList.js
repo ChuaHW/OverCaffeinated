@@ -31,7 +31,11 @@ function CafeList() {
 
   const handleSubmit = async (cafeId) => {
     const { rating, review_text } = formState[cafeId] || {};
-    if (!rating) { setMessage(prev => ({ ...prev, [cafeId]: 'Please select a rating.' })); return; }
+    if (!rating) {
+      setMessage(prev => ({ ...prev, [cafeId]: 'Please select a rating.' }));
+      return;
+    }
+
     try {
       await axios.post('http://localhost:3001/api/reviews',
         { cafe_id: cafeId, rating, review_text },
@@ -46,9 +50,9 @@ function CafeList() {
   };
 
   const averageRating = (cafeId) => {
-    const r = reviews[cafeId];
-    if (!r || r.length === 0) return null;
-    const avg = r.reduce((sum, rv) => sum + rv.rating, 0) / r.length;
+    const cafeReviews = reviews[cafeId];
+    if (!cafeReviews || cafeReviews.length === 0) return null;
+    const avg = cafeReviews.reduce((sum, r) => sum + r.rating, 0) / cafeReviews.length;
     return avg.toFixed(1);
   };
 
@@ -65,14 +69,14 @@ function CafeList() {
           <hr />
           <h3>Reviews</h3>
           {reviews[cafe.id]?.length === 0 && <p>No reviews yet. Be the first!</p>}
-          {reviews[cafe.id]?.map(rv => (
-            <div key={rv.id} style={{ background: '#f9f3ee', padding: '0.5rem', marginBottom: '0.5rem', borderRadius: '4px' }}>
-              <strong>{rv.display_name || rv.username}</strong> — {'⭐'.repeat(rv.rating)}
-              <p style={{ margin: '0.25rem 0 0' }}>{rv.review_text}</p>
+          {reviews[cafe.id]?.map(r => (
+            <div key={r.id} style={{ background: '#f9f3ee', padding: '0.5rem', marginBottom: '0.5rem', borderRadius: '4px' }}>
+              <strong>{r.display_name || r.username}</strong> — {'⭐'.repeat(r.rating)}
+              <p style={{ margin: '0.25rem 0 0' }}>{r.review_text}</p>
             </div>
           ))}
 
-          {token && (
+          {token ? (
             <div style={{ marginTop: '1rem' }}>
               <h4>Leave a Review</h4>
               <select
@@ -92,11 +96,15 @@ function CafeList() {
               />
               <br />
               <button onClick={() => handleSubmit(cafe.id)}>Submit Review</button>
-              {message[cafe.id] && <p style={{ color: message[cafe.id] === 'Review submitted!' ? 'green' : 'red' }}>{message[cafe.id]}</p>}
+              {message[cafe.id] && (
+                <p style={{ color: message[cafe.id] === 'Review submitted!' ? 'green' : 'red' }}>
+                  {message[cafe.id]}
+                </p>
+              )}
             </div>
+          ) : (
+            <p style={{ color: '#888', marginTop: '1rem' }}>Log in to leave a review.</p>
           )}
-
-          {!token && <p style={{ color: '#888', marginTop: '1rem' }}>Log in to leave a review.</p>}
         </div>
       ))}
     </div>
