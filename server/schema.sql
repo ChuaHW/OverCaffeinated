@@ -21,7 +21,23 @@ CREATE TABLE IF NOT EXISTS cafes (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS reviews (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  cafe_id INT NOT NULL,
+  rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  review_text TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (cafe_id) REFERENCES cafes(id) ON DELETE CASCADE,
+  UNIQUE KEY one_review_per_user_per_cafe (user_id, cafe_id)
+);
+
 INSERT INTO cafes (name, address, description) VALUES
 ('Nylon Coffee Roasters', '1 Everton Park', 'Specialty roaster in Tanjong Pagar'),
 ('Percolate', '136 Bedok North Ave 3', 'Specialty cafe in Bedok'),
-('Common Man Coffee', '22 Martin Rd', 'Specialty coffee with great brunch');
+('Common Man Coffee', '22 Martin Rd', 'Specialty coffee with great brunch'),
+('20Grams Coffee Roastery', '14 Arumugam Road, #01-05 LTC Building C, Singapore 409959', 'Nordic-style specialty roastery near MacPherson, known for light, fruit-forward single-origin roasts'),
+('Alchemist (Khong Guan Building)', '2 MacTaggart Road, #01-01 Khong Guan Building, Singapore 368078', 'Flagship store and in-house roastery in a heritage former biscuit factory in Tai Seng'),
+('Alchemist (The Mill)', '5 Jln Kilang, #02-02 The Mill, Singapore 159405', 'Dine-in outlet at The Mill, Jalan Kilang'),
+('Alchemist (The Heeren)', '260 Orchard Rd, #01-ORA The Heeren, Singapore 238855', 'Orchard Road outlet with seating and pastries');

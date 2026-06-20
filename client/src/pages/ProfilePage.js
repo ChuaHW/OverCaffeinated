@@ -4,6 +4,7 @@ import axios from 'axios';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -11,11 +12,15 @@ export default function ProfilePage() {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
 
-    axios.get('/api/users/profile', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    const headers = { Authorization: `Bearer ${token}` };
+
+    axios.get('/api/users/profile', { headers })
       .then(res => setProfile(res.data))
       .catch(() => setError('Failed to load profile.'));
+
+    axios.get('/api/reviews/user/mine', { headers })
+      .then(res => setReviews(res.data))
+      .catch(err => console.error(err));
   }, [navigate]);
 
   if (error) return <p>{error}</p>;
@@ -34,6 +39,17 @@ export default function ProfilePage() {
 
       <h3>Preferred Drink</h3>
       <p>{profile.preferred_drink || 'Not set.'}</p>
+
+      <hr />
+
+      <h3>My Reviews</h3>
+      {reviews.length === 0 && <p>You haven't reviewed any cafes yet.</p>}
+      {reviews.map(r => (
+        <div key={r.id} style={{ background: '#f9f3ee', padding: '0.5rem', marginBottom: '0.5rem', borderRadius: '4px' }}>
+          <strong>{r.cafe_name}</strong> — {'⭐'.repeat(r.rating)}
+          <p style={{ margin: '0.25rem 0 0' }}>{r.review_text}</p>
+        </div>
+      ))}
     </div>
   );
 }

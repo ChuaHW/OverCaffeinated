@@ -22,7 +22,8 @@ router.get('/profile', authMiddleware, async (req, res) => {
     );
     if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
     res.json(rows[0]);
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -35,7 +36,8 @@ router.put('/profile', authMiddleware, async (req, res) => {
       [display_name, bio, preferred_drink, req.user.id]
     );
     res.json({ message: 'Profile updated' });
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });

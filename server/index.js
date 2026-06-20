@@ -10,11 +10,13 @@ const authRoutes = require('./auth');
 const cafeRoutes = require('./cafes');
 const forgotPasswordRoutes = require('./forgotPassword');
 const usersRoutes = require('./users');
+const reviewRoutes = require('./reviews'); 
 
 app.use('/api/auth', authRoutes);
 app.use('/api/cafes', cafeRoutes);
 app.use('/api', forgotPasswordRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/reviews', reviewRoutes); 
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
