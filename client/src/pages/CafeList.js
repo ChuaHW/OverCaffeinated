@@ -6,6 +6,7 @@ function CafeList() {
   const [reviews, setReviews] = useState({});
   const [formState, setFormState] = useState({});
   const [message, setMessage] = useState({});
+  const [shelfStatus, setShelfStatus] = useState({});
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -15,6 +16,16 @@ function CafeList() {
         res.data.forEach(cafe => fetchReviews(cafe.id));
       })
       .catch(err => console.error(err));
+
+    if (token) {
+      axios.get('http://localhost:3001/api/shelf/mine', {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(res => {
+        const map = {};
+        res.data.forEach(item => { map[item.cafe_id] = item.status; });
+        setShelfStatus(map);
+      }).catch(err => console.error(err));
+    }
   }, []);
 
   const fetchReviews = (cafeId) => {
@@ -29,13 +40,35 @@ function CafeList() {
     }));
   };
 
+  const handleShelf = async (cafeId, status) => {
+    try {
+      await axios.post('http://localhost:3001/api/shelf',
+        { cafe_id: cafeId, status },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShelfStatus(prev => ({ ...prev, [cafeId]: status }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRemoveShelf = async (cafeId) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/shelf/${cafeId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShelfStatus(prev => { const next = { ...prev }; delete next[cafeId]; return next; });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleSubmit = async (cafeId) => {
     const { rating, review_text } = formState[cafeId] || {};
     if (!rating) {
       setMessage(prev => ({ ...prev, [cafeId]: 'Please select a rating.' }));
       return;
     }
-
     try {
       await axios.post('http://localhost:3001/api/reviews',
         { cafe_id: cafeId, rating, review_text },
@@ -56,6 +89,12 @@ function CafeList() {
     return avg.toFixed(1);
   };
 
+  const shelfLabels = {
+    want_to_visit: 'Want to Visit',
+    currently_exploring: 'Currently Exploring',
+    all_time_favorites: 'All-Time Favorite'
+  };
+
   return (
     <div style={{ padding: '1rem' }}>
       <h1>Discover Cafes</h1>
@@ -65,6 +104,37 @@ function CafeList() {
           <p>{cafe.address}</p>
           <p>{cafe.description}</p>
           <p><strong>Rating: </strong>{averageRating(cafe.id) ? `${averageRating(cafe.id)} / 5` : 'No reviews yet'}</p>
+
+          {token && (
+            <div style={{ marginBottom: '0.5rem' }}>
+              <strong>Add to Shelf: </strong>
+              {['want_to_visit', 'currently_exploring', 'all_time_favorites'].map(s => (
+                <button
+                  key={s}
+                  onClick={() => handleShelf(cafe.id, s)}
+                  style={{
+                    marginRight: '0.5rem',
+                    background: shelfStatus[cafe.id] === s ? '#6F4E37' : '#fff',
+                    color: shelfStatus[cafe.id] === s ? '#fff' : '#6F4E37',
+                    border: '1px solid #6F4E37',
+                    borderRadius: '4px',
+                    padding: '0.25rem 0.5rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {shelfLabels[s]}
+                </button>
+              ))}
+              {shelfStatus[cafe.id] && (
+                <button
+                  onClick={() => handleRemoveShelf(cafe.id)}
+                  style={{ color: '#999', border: 'none', background: 'none', cursor: 'pointer' }}
+                >
+                  ✕ Remove
+                </button>
+              )}
+            </div>
+          )}
 
           <hr />
           <h3>Reviews</h3>

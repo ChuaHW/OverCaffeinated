@@ -33,6 +33,17 @@ CREATE TABLE IF NOT EXISTS reviews (
   UNIQUE KEY one_review_per_user_per_cafe (user_id, cafe_id)
 );
 
+CREATE TABLE IF NOT EXISTS coffee_shelf (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  cafe_id INT NOT NULL,
+  status ENUM('want_to_visit', 'currently_exploring', 'all_time_favorites') NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (cafe_id) REFERENCES cafes(id) ON DELETE CASCADE,
+  UNIQUE KEY one_shelf_entry_per_user_per_cafe (user_id, cafe_id)
+);
+
 INSERT INTO cafes (name, address, description) VALUES
 ('Nylon Coffee Roasters', '1 Everton Park', 'Specialty roaster in Tanjong Pagar'),
 ('Percolate', '136 Bedok North Ave 3', 'Specialty cafe in Bedok'),

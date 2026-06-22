@@ -2,9 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const SHELF_LABELS = {
+  want_to_visit: 'Want to Visit',
+  currently_exploring: 'Currently Exploring',
+  all_time_favorites: 'All-Time Favorites'
+};
+
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [shelf, setShelf] = useState([]);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -21,10 +28,20 @@ export default function ProfilePage() {
     axios.get('/api/reviews/user/mine', { headers })
       .then(res => setReviews(res.data))
       .catch(err => console.error(err));
+
+    axios.get('/api/shelf/mine', { headers })
+      .then(res => setShelf(res.data))
+      .catch(err => console.error(err));
   }, [navigate]);
 
   if (error) return <p>{error}</p>;
   if (!profile) return <p>Loading...</p>;
+
+  const groupedShelf = shelf.reduce((acc, item) => {
+    acc[item.status] = acc[item.status] || [];
+    acc[item.status].push(item);
+    return acc;
+  }, {});
 
   return (
     <div style={{ maxWidth: 500, margin: '2rem auto', padding: '0 1rem' }}>
@@ -39,6 +56,24 @@ export default function ProfilePage() {
 
       <h3>Preferred Drink</h3>
       <p>{profile.preferred_drink || 'Not set.'}</p>
+
+      <hr />
+
+      <h3>Coffee Shelf</h3>
+      {shelf.length === 0 && <p>No cafes on your shelf yet.</p>}
+      {Object.keys(SHELF_LABELS).map(status => (
+        groupedShelf[status] && (
+          <div key={status} style={{ marginBottom: '1rem' }}>
+            <h4 style={{ color: '#6F4E37' }}>{SHELF_LABELS[status]}</h4>
+            {groupedShelf[status].map(item => (
+              <div key={item.id} style={{ background: '#f9f3ee', padding: '0.5rem', marginBottom: '0.5rem', borderRadius: '4px' }}>
+                <strong>{item.cafe_name}</strong>
+                <p style={{ margin: '0.25rem 0 0', color: '#666' }}>{item.address}</p>
+              </div>
+            ))}
+          </div>
+        )
+      ))}
 
       <hr />
 

@@ -3,10 +3,14 @@
 A community-driven web platform for cafe enthusiasts to discover and review specialty cafes in Singapore.
 
 ## Features
-- Cafe directory displaying a list of cafes retrieved from the backend database
+- Cafe directory displaying a curated list of specialty cafes in Singapore
 - User authentication — create an account, log in, and log out
 - Forgot password — request a password reset link via email
 - Reset password — securely reset your password via a tokenised link
+- Reviews and ratings — leave a star rating and written review for any cafe, with average ratings displayed per cafe
+- Coffee Shelf — save cafes to a personal shelf organised by status: Want to Visit, Currently Exploring, and All-Time Favorites
+- User profiles — view your bio, preferred drink, submitted reviews, and Coffee Shelf in one place
+- Edit profile — update your display name, bio, and preferred drink
 
 ## Tech Stack
 - **Frontend:** React.js
