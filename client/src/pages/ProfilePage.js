@@ -5,7 +5,7 @@ import axios from 'axios';
 const SHELF_LABELS = {
   want_to_visit: 'Want to Visit',
   currently_exploring: 'Currently Exploring',
-  all_time_favorites: 'All-Time Favorites'
+  all_time_favourites: 'All-Time Favourites'
 };
 
 export default function ProfilePage() {
@@ -43,6 +43,18 @@ export default function ProfilePage() {
     return acc;
   }, {});
 
+  const handleRemoveFromShelf = async (cafeId) => {
+    const token = localStorage.getItem('token');
+    try {
+      await axios.delete(`/api/shelf/${cafeId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShelf(prev => prev.filter(item => item.cafe_id !== cafeId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div style={{ maxWidth: 500, margin: '2rem auto', padding: '0 1rem' }}>
       <h2>{profile.display_name || 'No name set'}</h2>
@@ -66,9 +78,17 @@ export default function ProfilePage() {
           <div key={status} style={{ marginBottom: '1rem' }}>
             <h4 style={{ color: '#6F4E37' }}>{SHELF_LABELS[status]}</h4>
             {groupedShelf[status].map(item => (
-              <div key={item.id} style={{ background: '#f9f3ee', padding: '0.5rem', marginBottom: '0.5rem', borderRadius: '4px' }}>
-                <strong>{item.cafe_name}</strong>
-                <p style={{ margin: '0.25rem 0 0', color: '#666' }}>{item.address}</p>
+              <div key={item.id} style={{ background: '#f9f3ee', padding: '0.5rem', marginBottom: '0.5rem', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <strong>{item.cafe_name}</strong>
+                  <p style={{ margin: '0.25rem 0 0', color: '#666' }}>{item.address}</p>
+                </div>
+                <button
+                  onClick={() => handleRemoveFromShelf(item.cafe_id)}
+                  style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: '1rem' }}
+                >
+                  ✕
+                </button>
               </div>
             ))}
           </div>

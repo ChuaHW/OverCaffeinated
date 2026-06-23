@@ -92,7 +92,7 @@ function CafeList() {
   const shelfLabels = {
     want_to_visit: 'Want to Visit',
     currently_exploring: 'Currently Exploring',
-    all_time_favorites: 'All-Time Favorite'
+    all_time_favourites: 'All-Time Favourite'
   };
 
   return (
