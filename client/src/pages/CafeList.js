@@ -27,6 +27,7 @@ function CafeList() {
   const [message, setMessage] = useState({});
   const [shelfStatus, setShelfStatus] = useState({});
   const token = localStorage.getItem('token');
+  const currentUsername = localStorage.getItem('username');
 
   useEffect(() => {
     axios.get('http://localhost:3001/api/cafes')
@@ -162,6 +163,9 @@ function CafeList() {
                 </div>
               ))}
               {token ? (
+                reviews[cafe.id]?.some(r => r.username === currentUsername) ? (
+                  <p className="login-nudge">You have already reviewed this cafe.</p>
+                ) : (
                 <div className="review-form">
                   <h4>Leave a Review</h4>
                   <div className="form-field">
@@ -196,6 +200,7 @@ function CafeList() {
                     </div>
                   )}
                 </div>
+                )
               ) : (
                 <p className="login-nudge">
                   <a href="/login">Log in</a> to leave a review.
