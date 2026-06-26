@@ -26,6 +26,8 @@ function CafeList() {
   const [formState, setFormState] = useState({});
   const [message, setMessage] = useState({});
   const [shelfStatus, setShelfStatus] = useState({});
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('default');
   const token = localStorage.getItem('token');
   const currentUsername = localStorage.getItem('username');
 
@@ -107,14 +109,52 @@ function CafeList() {
 
   const renderStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
 
+  const visibleCafes = cafes
+    .filter(cafe => {
+      const q = search.toLowerCase();
+      return cafe.name.toLowerCase().includes(q) || (cafe.address || '').toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      if (sortBy === 'highest') {
+        return (parseFloat(averageRating(b.id)) || 0) - (parseFloat(averageRating(a.id)) || 0);
+      }
+      if (sortBy === 'most_reviewed') {
+        return (reviews[b.id]?.length || 0) - (reviews[a.id]?.length || 0);
+      }
+      return 0;
+    });
+
   return (
     <div className="page">
       <div className="page-header">
         <h1>Discover Cafes</h1>
         <p>Find your next favourite spot in Singapore</p>
       </div>
+
+      <div className="search-bar">
+        <input
+          className="form-input search-input"
+          placeholder="Search by name or location…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <select
+          className="form-select search-sort"
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+        >
+          <option value="default">Sort: Default</option>
+          <option value="highest">Highest Rated</option>
+          <option value="most_reviewed">Most Reviewed</option>
+        </select>
+      </div>
+
+      {visibleCafes.length === 0 && (
+        <p className="search-empty">No cafes match your search.</p>
+      )}
+
       <div className="cafe-grid">
-        {cafes.map(cafe => (
+        {visibleCafes.map(cafe => (
           <div key={cafe.id} className="cafe-card">
             <div className="cafe-card-header">
               <div>
@@ -166,40 +206,40 @@ function CafeList() {
                 reviews[cafe.id]?.some(r => r.username === currentUsername) ? (
                   <p className="login-nudge">You have already reviewed this cafe.</p>
                 ) : (
-                <div className="review-form">
-                  <h4>Leave a Review</h4>
-                  <div className="form-field">
-                    <label className="form-label">Rating</label>
-                    <select
-                      className="form-select"
-                      value={formState[cafe.id]?.rating || ''}
-                      onChange={e => handleFormChange(cafe.id, 'rating', parseInt(e.target.value))}
-                    >
-                      <option value="">Select a rating</option>
-                      {[1,2,3,4,5].map(n => (
-                        <option key={n} value={n}>{n} star{n > 1 ? 's' : ''}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-field">
-                    <label className="form-label">Your thoughts</label>
-                    <textarea
-                      className="form-textarea"
-                      placeholder="What did you think of this cafe?"
-                      value={formState[cafe.id]?.review_text || ''}
-                      onChange={e => handleFormChange(cafe.id, 'review_text', e.target.value)}
-                      rows={3}
-                    />
-                  </div>
-                  <button className="btn btn-primary btn-sm" onClick={() => handleSubmit(cafe.id)}>
-                    Submit Review
-                  </button>
-                  {message[cafe.id] && (
-                    <div className={`form-message ${message[cafe.id].type}`}>
-                      {message[cafe.id].text}
+                  <div className="review-form">
+                    <h4>Leave a Review</h4>
+                    <div className="form-field">
+                      <label className="form-label">Rating</label>
+                      <select
+                        className="form-select"
+                        value={formState[cafe.id]?.rating || ''}
+                        onChange={e => handleFormChange(cafe.id, 'rating', parseInt(e.target.value))}
+                      >
+                        <option value="">Select a rating</option>
+                        {[1,2,3,4,5].map(n => (
+                          <option key={n} value={n}>{n} star{n > 1 ? 's' : ''}</option>
+                        ))}
+                      </select>
                     </div>
-                  )}
-                </div>
+                    <div className="form-field">
+                      <label className="form-label">Your thoughts</label>
+                      <textarea
+                        className="form-textarea"
+                        placeholder="What did you think of this cafe?"
+                        value={formState[cafe.id]?.review_text || ''}
+                        onChange={e => handleFormChange(cafe.id, 'review_text', e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                    <button className="btn btn-primary btn-sm" onClick={() => handleSubmit(cafe.id)}>
+                      Submit Review
+                    </button>
+                    {message[cafe.id] && (
+                      <div className={`form-message ${message[cafe.id].type}`}>
+                        {message[cafe.id].text}
+                      </div>
+                    )}
+                  </div>
                 )
               ) : (
                 <p className="login-nudge">
