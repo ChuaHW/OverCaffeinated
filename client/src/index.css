@@ -482,3 +482,52 @@ a:hover { color: var(--accent-hover); }
   font-style: italic;
   margin-bottom: 1.5rem;
 }
+
+.tag-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+
+.tag-chip {
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.3125rem 0.875rem;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.tag-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+.tag-chip.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.cafe-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.cafe-tag {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.1875rem 0.625rem;
+  border-radius: 100px;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1px solid var(--border);
+}

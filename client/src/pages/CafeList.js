@@ -28,6 +28,7 @@ function CafeList() {
   const [shelfStatus, setShelfStatus] = useState({});
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('default');
+  const [selectedTag, setSelectedTag] = useState('');
   const token = localStorage.getItem('token');
   const currentUsername = localStorage.getItem('username');
 
@@ -109,18 +110,20 @@ function CafeList() {
 
   const renderStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
 
+  const parseTags = (tags) => tags ? tags.split(',').map(t => t.trim()) : [];
+
+  const allTags = [...new Set(cafes.flatMap(c => parseTags(c.tags)))].sort();
+
   const visibleCafes = cafes
     .filter(cafe => {
       const q = search.toLowerCase();
-      return cafe.name.toLowerCase().includes(q) || (cafe.address || '').toLowerCase().includes(q);
+      const matchesSearch = cafe.name.toLowerCase().includes(q) || (cafe.address || '').toLowerCase().includes(q);
+      const matchesTag = !selectedTag || parseTags(cafe.tags).includes(selectedTag);
+      return matchesSearch && matchesTag;
     })
     .sort((a, b) => {
-      if (sortBy === 'highest') {
-        return (parseFloat(averageRating(b.id)) || 0) - (parseFloat(averageRating(a.id)) || 0);
-      }
-      if (sortBy === 'most_reviewed') {
-        return (reviews[b.id]?.length || 0) - (reviews[a.id]?.length || 0);
-      }
+      if (sortBy === 'highest') return (parseFloat(averageRating(b.id)) || 0) - (parseFloat(averageRating(a.id)) || 0);
+      if (sortBy === 'most_reviewed') return (reviews[b.id]?.length || 0) - (reviews[a.id]?.length || 0);
       return 0;
     });
 
@@ -149,6 +152,26 @@ function CafeList() {
         </select>
       </div>
 
+      {allTags.length > 0 && (
+        <div className="tag-filter-bar">
+          <button
+            className={`tag-chip${selectedTag === '' ? ' active' : ''}`}
+            onClick={() => setSelectedTag('')}
+          >
+            All
+          </button>
+          {allTags.map(tag => (
+            <button
+              key={tag}
+              className={`tag-chip${selectedTag === tag ? ' active' : ''}`}
+              onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
+
       {visibleCafes.length === 0 && (
         <p className="search-empty">No cafes match your search.</p>
       )}
@@ -169,6 +192,13 @@ function CafeList() {
               }
             </div>
             {cafe.description && <p className="cafe-description">{cafe.description}</p>}
+            {parseTags(cafe.tags).length > 0 && (
+              <div className="cafe-tags">
+                {parseTags(cafe.tags).map(tag => (
+                  <span key={tag} className="cafe-tag">{tag}</span>
+                ))}
+              </div>
+            )}
             {token && (
               <div className="shelf-bar">
                 <span className="shelf-label-text">My Shelf</span>
