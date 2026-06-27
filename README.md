@@ -64,8 +64,6 @@ MAILTRAP_PASS=your_mailtrap_password
 7. You will be redirected to the login page
 
 ### Notes
-- Backend runs on port 3001
-- Use `DB_HOST=127.0.0.1` (not `localhost`) to avoid MySQL socket issues on macOS
 - Reset links expire after 1 hour
 - Email testing is handled via Mailtrap during development
 - To view test emails, log into your Mailtrap inbox at mailtrap.io

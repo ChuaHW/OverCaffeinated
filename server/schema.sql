@@ -45,6 +45,14 @@ CREATE TABLE IF NOT EXISTS coffee_shelf (
   UNIQUE KEY one_shelf_entry_per_user_per_cafe (user_id, cafe_id)
 );
 
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  token VARCHAR(64) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 INSERT INTO cafes (name, address, description, tags) VALUES
 ('Nylon Coffee Roasters', '1 Everton Park', 'Specialty roaster in Tanjong Pagar', 'Pour-over'),
 ('Percolate', '136 Bedok North Ave 3', 'Specialty cafe in Bedok', 'Espresso'),
