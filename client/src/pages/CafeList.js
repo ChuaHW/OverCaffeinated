@@ -4,7 +4,7 @@ import axios from 'axios';
 const SHELF_LABELS = {
   want_to_visit: 'Want to Visit',
   currently_exploring: 'Currently Exploring',
-  all_time_favorites: 'All-Time Favourite',
+  all_time_favourites: 'All-Time Favourites',
 };
 
 const StarIcon = () => (

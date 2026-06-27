@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS coffee_shelf (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   cafe_id INT NOT NULL,
-  status ENUM('want_to_visit', 'currently_exploring', 'all_time_favorites') NOT NULL,
+  status ENUM('want_to_visit', 'currently_exploring', 'all_time_favourites') NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (cafe_id) REFERENCES cafes(id) ON DELETE CASCADE,
