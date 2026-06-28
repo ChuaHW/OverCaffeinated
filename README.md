@@ -8,7 +8,8 @@ A community-driven web platform for cafe enthusiasts to discover and review spec
 - Forgot password — request a password reset link via email
 - Reset password — securely reset your password via a tokenised link
 - Reviews and ratings — leave a star rating and written review for any cafe, with average ratings displayed per cafe
-- Coffee Shelf — save cafes to a personal shelf organised by status: Want to Visit, Currently Exploring, and All-Time Favorites
+- Coffee Shelf — save cafes to a personal shelf organised by status: Want to Visit, Currently Exploring, and All-Time Favourites
+- Search and filtering — search cafes by name and filter by highest rating, most reviews and brew methods
 - User profiles — view your bio, preferred drink, submitted reviews, and Coffee Shelf in one place
 - Edit profile — update your display name, bio, and preferred drink
 
