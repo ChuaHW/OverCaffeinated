@@ -12,6 +12,7 @@ A community-driven web platform for cafe enthusiasts to discover and review spec
 - Search and filtering — search cafes by name and filter by highest rating, most reviews and brew methods
 - User profiles — view your bio, preferred drink, submitted reviews, and Coffee Shelf in one place
 - Edit profile — update your display name, bio, and preferred drink
+- Data Export — download a PDF report of your Coffee Shelf and review history from your profile page
 
 ## Tech Stack
 - **Frontend:** React.js
