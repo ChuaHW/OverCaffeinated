@@ -12,6 +12,7 @@ const forgotPasswordRoutes = require('./forgotPassword');
 const usersRoutes = require('./users');
 const reviewRoutes = require('./reviews'); 
 const shelfRoutes = require('./shelf');
+const exportRoutes = require('./export');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/cafes', cafeRoutes);
@@ -19,6 +20,7 @@ app.use('/api', forgotPasswordRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/reviews', reviewRoutes); 
 app.use('/api/shelf', shelfRoutes);
+app.use('/api/export', exportRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -41,6 +41,27 @@ export default function ProfilePage() {
     } catch (err) { console.error(err); }
   };
 
+  const handleExport = async () => {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await axios.get('/api/export/pdf', {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob',
+    });
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'overcaffeinated-export.pdf');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    setError('Failed to export your data.');
+  }
+};
+
   const renderStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
 
   if (error) return <div className="loading-screen">{error}</div>;
@@ -65,6 +86,7 @@ export default function ProfilePage() {
           </div>
         </div>
         <button className="btn btn-outline" onClick={() => navigate('/profile/edit')}>Edit Profile</button>
+        <button className="btn btn-outline" onClick={handleExport}>Export My Data</button>
       </div>
 
       <div className="section-card">
