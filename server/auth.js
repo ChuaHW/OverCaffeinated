@@ -6,7 +6,6 @@ const db = require('./db');
 
 router.post('/register', async (req, res) => {
   const { email, password, username } = req.body;
-  console.log('Register attempt:', email, username);
   try {
     const hash = await bcrypt.hash(password, 10);
     await db.query(

@@ -16,7 +16,7 @@ function Navbar() {
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand">OverCaffeinated</Link>
         <div className="navbar-links">
-          <Link to="/" className="nav-link">Cafes</Link>
+          <Link to="/cafes" className="nav-link">Cafes</Link>
           {token ? (
             <>
               <span className="nav-greeting">Hi, {username}</span>
