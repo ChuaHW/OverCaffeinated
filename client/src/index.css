@@ -228,6 +228,58 @@ a:hover { color: var(--accent-hover); }
   flex-shrink: 0;
 }
 
+.cafe-header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.share-wrap { position: relative; }
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.share-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+.share-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  padding: 0.375rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  z-index: 10;
+}
+
+.share-menu-item {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.share-menu-item:hover { background: var(--accent-light); }
+
 .cafe-description { color: var(--text-muted); font-size: 0.9375rem; line-height: 1.6; margin-bottom: 1.25rem; }
 
 .shelf-bar {

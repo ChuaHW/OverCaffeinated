@@ -13,6 +13,7 @@ A community-driven web platform for cafe enthusiasts to discover and review spec
 - User profiles — view your bio, preferred drink, submitted reviews, and Coffee Shelf in one place
 - Edit profile — update your display name, bio, and preferred drink
 - Data Export — download a PDF report of your Coffee Shelf and review history from your profile page
+- Social Sharing — share a cafe with friends via WhatsApp or Telegram, complete with its name, rating, and a direct link back to it on OverCaffeinated
 
 ## Tech Stack
 - **Frontend:** React.js

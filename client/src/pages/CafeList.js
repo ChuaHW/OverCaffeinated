@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
 const SHELF_LABELS = {
@@ -20,6 +21,16 @@ const PinIcon = () => (
   </svg>
 );
 
+const ShareIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="18" cy="5" r="3"/>
+    <circle cx="6" cy="12" r="3"/>
+    <circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </svg>
+);
+
 function CafeList() {
   const [cafes, setCafes] = useState([]);
   const [reviews, setReviews] = useState({});
@@ -29,6 +40,9 @@ function CafeList() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [selectedTag, setSelectedTag] = useState('');
+  const [searchParams] = useSearchParams();
+  const [highlightedCafe, setHighlightedCafe] = useState(null);
+  const [shareOpenId, setShareOpenId] = useState(null);
   const token = localStorage.getItem('token');
   const currentUsername = localStorage.getItem('username');
 
@@ -50,6 +64,26 @@ function CafeList() {
       }).catch(err => console.error(err));
     }
   }, []);
+
+  useEffect(() => {
+    const cafeId = searchParams.get('cafe');
+    if (!cafeId || cafes.length === 0) return;
+    const el = document.getElementById(`cafe-${cafeId}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setHighlightedCafe(Number(cafeId));
+    const timeout = setTimeout(() => setHighlightedCafe(null), 2500);
+    return () => clearTimeout(timeout);
+  }, [cafes, searchParams]);
+
+  useEffect(() => {
+    if (shareOpenId === null) return;
+    const handleClick = (e) => {
+      if (!e.target.closest('.share-wrap')) setShareOpenId(null);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [shareOpenId]);
 
   const fetchReviews = (cafeId) => {
     axios.get(`http://localhost:3001/api/reviews/${cafeId}`)
@@ -109,6 +143,21 @@ function CafeList() {
   };
 
   const renderStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
+
+  const buildShareUrl = (cafe) => `${window.location.origin}/cafes?cafe=${cafe.id}`;
+
+  const buildShareText = (cafe) => {
+    const avg = averageRating(cafe.id);
+    const count = reviews[cafe.id]?.length || 0;
+    const ratingLine = avg ? `${avg}★ from ${count} review${count === 1 ? '' : 's'}` : 'No ratings yet';
+    return `${cafe.name} — ${ratingLine}\n${cafe.address}`;
+  };
+
+  const buildWhatsAppLink = (cafe) =>
+    `https://wa.me/?text=${encodeURIComponent(`${buildShareText(cafe)}\n\nCheck it out on OverCaffeinated: ${buildShareUrl(cafe)}`)}`;
+
+  const buildTelegramLink = (cafe) =>
+    `https://t.me/share/url?url=${encodeURIComponent(buildShareUrl(cafe))}&text=${encodeURIComponent(buildShareText(cafe))}`;
 
   const parseTags = (tags) => tags ? tags.split(',').map(t => t.trim()) : [];
 
@@ -178,7 +227,11 @@ function CafeList() {
 
       <div className="cafe-grid">
         {visibleCafes.map(cafe => (
-          <div key={cafe.id} className="cafe-card">
+          <div
+            key={cafe.id}
+            id={`cafe-${cafe.id}`}
+            className={`cafe-card${highlightedCafe === cafe.id ? ' cafe-card-highlight' : ''}`}
+          >
             <div className="cafe-card-header">
               <div>
                 <h2 className="cafe-name">{cafe.name}</h2>
@@ -186,10 +239,43 @@ function CafeList() {
                   <PinIcon /> {cafe.address}
                 </div>
               </div>
-              {averageRating(cafe.id)
-                ? <div className="cafe-rating"><StarIcon /> {averageRating(cafe.id)}</div>
-                : <div className="cafe-no-rating">No ratings yet</div>
-              }
+              <div className="cafe-header-actions">
+                {averageRating(cafe.id)
+                  ? <div className="cafe-rating"><StarIcon /> {averageRating(cafe.id)}</div>
+                  : <div className="cafe-no-rating">No ratings yet</div>
+                }
+                <div className="share-wrap">
+                  <button
+                    className="share-btn"
+                    onClick={() => setShareOpenId(shareOpenId === cafe.id ? null : cafe.id)}
+                    aria-label="Share this cafe"
+                  >
+                    <ShareIcon />
+                  </button>
+                  {shareOpenId === cafe.id && (
+                    <div className="share-menu">
+                      <a
+                        className="share-menu-item"
+                        href={buildWhatsAppLink(cafe)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShareOpenId(null)}
+                      >
+                        WhatsApp
+                      </a>
+                      <a
+                        className="share-menu-item"
+                        href={buildTelegramLink(cafe)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShareOpenId(null)}
+                      >
+                        Telegram
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             {cafe.description && <p className="cafe-description">{cafe.description}</p>}
             {parseTags(cafe.tags).length > 0 && (
