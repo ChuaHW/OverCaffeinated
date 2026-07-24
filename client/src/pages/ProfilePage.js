@@ -124,12 +124,21 @@ export default function ProfilePage() {
               <div key={status}>
                 <p className="shelf-group-title">{SHELF_LABELS[status]}</p>
                 {groupedShelf[status].map(item => (
-                  <div key={item.id} className="shelf-item">
+                  <div
+                    key={item.id}
+                    className="shelf-item shelf-item-clickable"
+                    onClick={() => navigate(`/cafes/${item.cafe_id}`)}
+                  >
                     <div>
                       <div className="shelf-item-name">{item.cafe_name}</div>
                       {item.address && <div className="shelf-item-address">{item.address}</div>}
                     </div>
-                    <button className="shelf-remove" onClick={() => handleRemoveFromShelf(item.cafe_id)}>✕</button>
+                    <button
+                      className="shelf-remove"
+                      onClick={(e) => { e.stopPropagation(); handleRemoveFromShelf(item.cafe_id); }}
+                    >
+                      ✕
+                    </button>
                   </div>
                 ))}
               </div>
