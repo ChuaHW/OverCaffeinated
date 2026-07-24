@@ -5,12 +5,13 @@ const jwt = require('jsonwebtoken');
 const db = require('./db');
 
 router.post('/register', async (req, res) => {
-  const { email, password, username } = req.body;
+  const { email, password, username, role } = req.body;
+  const safeRole = role === 'owner' ? 'owner' : 'user';
   try {
     const hash = await bcrypt.hash(password, 10);
     await db.query(
-      'INSERT INTO users (email, password_hash, username) VALUES (?, ?, ?)',
-      [email, hash, username]
+      'INSERT INTO users (email, password_hash, username, role) VALUES (?, ?, ?, ?)',
+      [email, hash, username, safeRole]
     );
     res.json({ message: 'User created successfully' });
   } catch (err) {
@@ -30,8 +31,8 @@ router.post('/login', async (req, res) => {
     if (rows.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
     const passwordMatch = await bcrypt.compare(password, rows[0].password_hash);
     if (!passwordMatch) return res.status(401).json({ error: 'Invalid credentials' });
-    const token = jwt.sign({ id: rows[0].id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, username: rows[0].username });
+    const token = jwt.sign({ id: rows[0].id, role: rows[0].role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, username: rows[0].username, role: rows[0].role });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }

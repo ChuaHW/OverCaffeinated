@@ -75,6 +75,14 @@ export default function CafeDetail() {
 
   const parseTags = (tags) => tags ? tags.split(',').map(t => t.trim()) : [];
   const renderStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  const formatTime = (t) => {
+    if (!t) return null;
+    const [h, m] = t.split(':');
+    const hour = parseInt(h, 10);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+    return `${displayHour}:${m} ${period}`;
+  };
   const averageRating = () => {
     if (!reviews.length) return null;
     return (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
@@ -116,6 +124,18 @@ export default function CafeDetail() {
       });
       setShelfStatus(null);
     } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Delete this review? This cannot be undone.')) return;
+    try {
+      await axios.delete(`http://localhost:3001/api/reviews/${reviewId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setReviews(prev => prev.filter(r => r.id !== reviewId));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   if (loading) return <div className="loading-screen">Loading…</div>;
@@ -203,8 +223,23 @@ export default function CafeDetail() {
             {reviews.map(r => (
               <div key={r.id} className="review-card">
                 <div className="review-header">
+                  <span className="review-avatar">
+                    {r.avatar_url
+                      ? <img src={r.avatar_url} alt="" />
+                      : (r.display_name || r.username || '?').charAt(0).toUpperCase()
+                    }
+                  </span>
                   <span className="review-author">{r.display_name || r.username}</span>
                   <span className="review-stars">{renderStars(r.rating)}</span>
+                  {r.username === currentUsername && (
+                    <button
+                      className="review-delete"
+                      onClick={() => handleDeleteReview(r.id)}
+                      aria-label="Delete review"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
                 {r.review_text && <p className="review-text">{r.review_text}</p>}
               </div>
@@ -279,7 +314,11 @@ export default function CafeDetail() {
             <div className="cd-info-row">
               <div>
                 <span className="cd-info-label">Opening Hours</span>
-                <span className="cd-info-text cd-info-muted">Not listed</span>
+                {cafe.opening_time && cafe.closing_time ? (
+                  <span className="cd-info-text">{formatTime(cafe.opening_time)} – {formatTime(cafe.closing_time)}</span>
+                ) : (
+                  <span className="cd-info-text cd-info-muted">Not listed</span>
+                )}
               </div>
             </div>
           </div>

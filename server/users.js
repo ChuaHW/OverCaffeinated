@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db');
 const jwt = require('jsonwebtoken');
+const upload = require('./upload');
 
 function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
@@ -17,7 +18,7 @@ function authMiddleware(req, res, next) {
 router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT id, email, display_name, bio, preferred_drink, created_at FROM users WHERE id = ?',
+      'SELECT id, email, display_name, bio, preferred_drink, avatar_url, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
     if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
@@ -28,13 +29,21 @@ router.get('/profile', authMiddleware, async (req, res) => {
   }
 });
 
-router.put('/profile', authMiddleware, async (req, res) => {
+router.put('/profile', authMiddleware, upload.single('avatar'), async (req, res) => {
   const { display_name, bio, preferred_drink } = req.body;
   try {
-    await db.query(
-      'UPDATE users SET display_name = ?, bio = ?, preferred_drink = ? WHERE id = ?',
-      [display_name, bio, preferred_drink, req.user.id]
-    );
+    if (req.file) {
+      const avatar_url = `http://localhost:3001/uploads/${req.file.filename}`;
+      await db.query(
+        'UPDATE users SET display_name = ?, bio = ?, preferred_drink = ?, avatar_url = ? WHERE id = ?',
+        [display_name, bio, preferred_drink, avatar_url, req.user.id]
+      );
+    } else {
+      await db.query(
+        'UPDATE users SET display_name = ?, bio = ?, preferred_drink = ? WHERE id = ?',
+        [display_name, bio, preferred_drink, req.user.id]
+      );
+    }
     res.json({ message: 'Profile updated' });
   } catch (err) {
     console.error(err);

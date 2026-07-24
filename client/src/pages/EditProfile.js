@@ -6,6 +6,8 @@ export default function EditProfile() {
   const [form, setForm] = useState({ display_name: '', bio: '', preferred_drink: '' });
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,16 +18,27 @@ export default function EditProfile() {
         const p = res.data;
         setEmail(p.email);
         setForm({ display_name: p.display_name || '', bio: p.bio || '', preferred_drink: p.preferred_drink || '' });
+        setAvatarPreview(p.avatar_url || null);
       });
   }, [navigate]);
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
 
+  const handleAvatarChange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+    const data = new FormData();
+    Object.entries(form).forEach(([key, value]) => data.append(key, value));
+    if (avatarFile) data.append('avatar', avatarFile);
     try {
-      await axios.put('/api/users/profile', form, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put('/api/users/profile', data, { headers: { Authorization: `Bearer ${token}` } });
       navigate('/profile');
     } catch {
       setMessage('Failed to save changes.');
@@ -40,6 +53,13 @@ export default function EditProfile() {
       </div>
       <div className="section-card">
         <form onSubmit={handleSubmit}>
+          <div className="form-field">
+            <label className="form-label">Profile Picture</label>
+            {avatarPreview && (
+              <img src={avatarPreview} alt="Avatar preview" className="avatar-preview" />
+            )}
+            <input className="form-input" type="file" accept="image/*" onChange={handleAvatarChange} />
+          </div>
           <div className="form-field">
             <label className="form-label">Display Name</label>
             <input className="form-input" name="display_name" placeholder="Your display name" value={form.display_name} onChange={handleChange} />

@@ -52,11 +52,26 @@ router.get('/user/mine', authMiddleware, async (req, res) => {
   }
 });
 
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT user_id FROM reviews WHERE id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Review not found' });
+    if (rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: 'You can only delete your own reviews' });
+    }
+    await db.query('DELETE FROM reviews WHERE id = ?', [req.params.id]);
+    res.json({ message: 'Review deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not delete review' });
+  }
+});
+
 router.get('/:cafeId', async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT reviews.id, reviews.rating, reviews.review_text, reviews.created_at,
-              users.display_name, users.username
+              users.display_name, users.username, users.avatar_url
        FROM reviews
        JOIN users ON reviews.user_id = users.id
        WHERE reviews.cafe_id = ?

@@ -41,6 +41,15 @@ export default function ProfilePage() {
     } catch (err) { console.error(err); }
   };
 
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Delete this review? This cannot be undone.')) return;
+    const token = localStorage.getItem('token');
+    try {
+      await axios.delete(`/api/reviews/${reviewId}`, { headers: { Authorization: `Bearer ${token}` } });
+      setReviews(prev => prev.filter(r => r.id !== reviewId));
+    } catch (err) { console.error(err); }
+  };
+
   const handleExport = async () => {
   const token = localStorage.getItem('token');
   try {
@@ -79,7 +88,9 @@ export default function ProfilePage() {
     <div className="page" style={{ maxWidth: 760 }}>
       <div className="profile-header">
         <div className="profile-header-left">
-          <div className="profile-avatar">{initials}</div>
+          <div className="profile-avatar">
+            {profile.avatar_url ? <img src={profile.avatar_url} alt="" /> : initials}
+          </div>
           <div>
             <h2 className="profile-name">{profile.display_name || 'No name set'}</h2>
             <p className="profile-email">{profile.email}</p>
@@ -137,6 +148,13 @@ export default function ProfilePage() {
               <div className="review-header">
                 <span className="review-profile-name">{r.cafe_name}</span>
                 <span className="review-stars">{renderStars(r.rating)}</span>
+                <button
+                  className="review-delete"
+                  onClick={() => handleDeleteReview(r.id)}
+                  aria-label="Delete review"
+                >
+                  ✕
+                </button>
               </div>
               {r.review_text && <p className="review-text">{r.review_text}</p>}
             </div>

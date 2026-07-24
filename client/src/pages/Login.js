@@ -14,6 +14,7 @@ function Login() {
       const res = await axios.post('http://localhost:3001/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('username', res.data.username);
+      localStorage.setItem('role', res.data.role || 'user');
       navigate('/');
     } catch {
       setError('Invalid email or password.');

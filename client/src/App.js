@@ -9,6 +9,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import ProfilePage from './pages/ProfilePage';
 import EditProfile from './pages/EditProfile';
+import OwnerDashboard from './pages/OwnerDashboard';
 
 function AppContent() {
   const location = useLocation();
@@ -27,6 +28,7 @@ function AppContent() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/edit" element={<EditProfile />} />
+        <Route path="/owner/dashboard" element={<OwnerDashboard />} />
       </Routes>
     </>
   );
