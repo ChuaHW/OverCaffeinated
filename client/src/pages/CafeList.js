@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const SHELF_LABELS = {
@@ -31,27 +31,36 @@ const ShareIcon = () => (
   </svg>
 );
 
+const ArrowIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"/>
+    <polyline points="12 5 19 12 12 19"/>
+  </svg>
+);
+
+const CupIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+    <line x1="6" y1="1" x2="6" y2="4"/>
+    <line x1="10" y1="1" x2="10" y2="4"/>
+    <line x1="14" y1="1" x2="14" y2="4"/>
+  </svg>
+);
+
 function CafeList() {
+  const navigate = useNavigate();
   const [cafes, setCafes] = useState([]);
-  const [reviews, setReviews] = useState({});
-  const [formState, setFormState] = useState({});
-  const [message, setMessage] = useState({});
   const [shelfStatus, setShelfStatus] = useState({});
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [selectedTag, setSelectedTag] = useState('');
-  const [searchParams] = useSearchParams();
-  const [highlightedCafe, setHighlightedCafe] = useState(null);
   const [shareOpenId, setShareOpenId] = useState(null);
   const token = localStorage.getItem('token');
-  const currentUsername = localStorage.getItem('username');
 
   useEffect(() => {
     axios.get('http://localhost:3001/api/cafes')
-      .then(res => {
-        setCafes(res.data);
-        res.data.forEach(cafe => fetchReviews(cafe.id));
-      })
+      .then(res => setCafes(res.data))
       .catch(err => console.error(err));
 
     if (token) {
@@ -63,18 +72,7 @@ function CafeList() {
         setShelfStatus(map);
       }).catch(err => console.error(err));
     }
-  }, []);
-
-  useEffect(() => {
-    const cafeId = searchParams.get('cafe');
-    if (!cafeId || cafes.length === 0) return;
-    const el = document.getElementById(`cafe-${cafeId}`);
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setHighlightedCafe(Number(cafeId));
-    const timeout = setTimeout(() => setHighlightedCafe(null), 2500);
-    return () => clearTimeout(timeout);
-  }, [cafes, searchParams]);
+  }, [token]);
 
   useEffect(() => {
     if (shareOpenId === null) return;
@@ -85,16 +83,8 @@ function CafeList() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [shareOpenId]);
 
-  const fetchReviews = (cafeId) => {
-    axios.get(`http://localhost:3001/api/reviews/${cafeId}`)
-      .then(res => setReviews(prev => ({ ...prev, [cafeId]: res.data })));
-  };
-
-  const handleFormChange = (cafeId, field, value) => {
-    setFormState(prev => ({ ...prev, [cafeId]: { ...prev[cafeId], [field]: value } }));
-  };
-
-  const handleShelf = async (cafeId, status) => {
+  const handleShelf = async (e, cafeId, status) => {
+    e.stopPropagation();
     try {
       await axios.post('http://localhost:3001/api/shelf',
         { cafe_id: cafeId, status },
@@ -104,7 +94,8 @@ function CafeList() {
     } catch (err) { console.error(err); }
   };
 
-  const handleRemoveShelf = async (cafeId) => {
+  const handleRemoveShelf = async (e, cafeId) => {
+    e.stopPropagation();
     try {
       await axios.delete(`http://localhost:3001/api/shelf/${cafeId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -117,39 +108,14 @@ function CafeList() {
     } catch (err) { console.error(err); }
   };
 
-  const handleSubmit = async (cafeId) => {
-    const { rating, review_text } = formState[cafeId] || {};
-    if (!rating) {
-      setMessage(prev => ({ ...prev, [cafeId]: { text: 'Please select a rating.', type: 'error' } }));
-      return;
-    }
-    try {
-      await axios.post('http://localhost:3001/api/reviews',
-        { cafe_id: cafeId, rating, review_text },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setMessage(prev => ({ ...prev, [cafeId]: { text: 'Review submitted!', type: 'success' } }));
-      setFormState(prev => ({ ...prev, [cafeId]: { rating: '', review_text: '' } }));
-      fetchReviews(cafeId);
-    } catch (err) {
-      setMessage(prev => ({ ...prev, [cafeId]: { text: err.response?.data?.error || 'Failed to submit.', type: 'error' } }));
-    }
-  };
-
-  const averageRating = (cafeId) => {
-    const r = reviews[cafeId];
-    if (!r || r.length === 0) return null;
-    return (r.reduce((sum, x) => sum + x.rating, 0) / r.length).toFixed(1);
-  };
-
   const renderStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
 
-  const buildShareUrl = (cafe) => `${window.location.origin}/cafes?cafe=${cafe.id}`;
+  const buildShareUrl = (cafe) => `${window.location.origin}/cafes/${cafe.id}`;
 
   const buildShareText = (cafe) => {
-    const avg = averageRating(cafe.id);
-    const count = reviews[cafe.id]?.length || 0;
-    const ratingLine = avg ? `${avg}★ from ${count} review${count === 1 ? '' : 's'}` : 'No ratings yet';
+    const ratingLine = cafe.avg_rating
+      ? `${cafe.avg_rating}★ from ${cafe.review_count} review${cafe.review_count === 1 ? '' : 's'}`
+      : 'No ratings yet';
     return `${cafe.name} — ${ratingLine}\n${cafe.address}`;
   };
 
@@ -171,8 +137,8 @@ function CafeList() {
       return matchesSearch && matchesTag;
     })
     .sort((a, b) => {
-      if (sortBy === 'highest') return (parseFloat(averageRating(b.id)) || 0) - (parseFloat(averageRating(a.id)) || 0);
-      if (sortBy === 'most_reviewed') return (reviews[b.id]?.length || 0) - (reviews[a.id]?.length || 0);
+      if (sortBy === 'highest') return (parseFloat(b.avg_rating) || 0) - (parseFloat(a.avg_rating) || 0);
+      if (sortBy === 'most_reviewed') return (b.review_count || 0) - (a.review_count || 0);
       return 0;
     });
 
@@ -229,9 +195,13 @@ function CafeList() {
         {visibleCafes.map(cafe => (
           <div
             key={cafe.id}
-            id={`cafe-${cafe.id}`}
-            className={`cafe-card${highlightedCafe === cafe.id ? ' cafe-card-highlight' : ''}`}
+            className="cafe-card cafe-card-link"
+            onClick={() => navigate(`/cafes/${cafe.id}`)}
           >
+            <div className="cafe-card-image">
+              {cafe.image_url ? <img src={cafe.image_url} alt={cafe.name} /> : <CupIcon />}
+            </div>
+            <div className="cafe-card-body">
             <div className="cafe-card-header">
               <div>
                 <h2 className="cafe-name">{cafe.name}</h2>
@@ -240,20 +210,20 @@ function CafeList() {
                 </div>
               </div>
               <div className="cafe-header-actions">
-                {averageRating(cafe.id)
-                  ? <div className="cafe-rating"><StarIcon /> {averageRating(cafe.id)}</div>
+                {cafe.avg_rating
+                  ? <div className="cafe-rating"><StarIcon /> {cafe.avg_rating}</div>
                   : <div className="cafe-no-rating">No ratings yet</div>
                 }
                 <div className="share-wrap">
                   <button
                     className="share-btn"
-                    onClick={() => setShareOpenId(shareOpenId === cafe.id ? null : cafe.id)}
+                    onClick={(e) => { e.stopPropagation(); setShareOpenId(shareOpenId === cafe.id ? null : cafe.id); }}
                     aria-label="Share this cafe"
                   >
                     <ShareIcon />
                   </button>
                   {shareOpenId === cafe.id && (
-                    <div className="share-menu">
+                    <div className="share-menu" onClick={(e) => e.stopPropagation()}>
                       <a
                         className="share-menu-item"
                         href={buildWhatsAppLink(cafe)}
@@ -277,7 +247,10 @@ function CafeList() {
                 </div>
               </div>
             </div>
+
+            {cafe.specialty && <div className="cafe-specialty">{cafe.specialty}</div>}
             {cafe.description && <p className="cafe-description">{cafe.description}</p>}
+
             {parseTags(cafe.tags).length > 0 && (
               <div className="cafe-tags">
                 {parseTags(cafe.tags).map(tag => (
@@ -285,83 +258,35 @@ function CafeList() {
                 ))}
               </div>
             )}
+
             {token && (
-              <div className="shelf-bar">
+              <div className="shelf-bar" onClick={(e) => e.stopPropagation()}>
                 <span className="shelf-label-text">My Shelf</span>
                 {Object.entries(SHELF_LABELS).map(([s, label]) => (
                   <button
                     key={s}
-                    onClick={() => handleShelf(cafe.id, s)}
+                    onClick={(e) => handleShelf(e, cafe.id, s)}
                     className={`shelf-btn${shelfStatus[cafe.id] === s ? ' active' : ''}`}
                   >
                     {label}
                   </button>
                 ))}
                 {shelfStatus[cafe.id] && (
-                  <button onClick={() => handleRemoveShelf(cafe.id)} className="shelf-remove">
+                  <button onClick={(e) => handleRemoveShelf(e, cafe.id)} className="shelf-remove">
                     ✕ Remove
                   </button>
                 )}
               </div>
             )}
-            <div className="reviews-section">
-              <h3>Reviews</h3>
-              {(!reviews[cafe.id] || reviews[cafe.id].length === 0) && (
-                <p className="no-reviews">No reviews yet — be the first!</p>
-              )}
-              {reviews[cafe.id]?.map(r => (
-                <div key={r.id} className="review-card">
-                  <div className="review-header">
-                    <span className="review-author">{r.display_name || r.username}</span>
-                    <span className="review-stars">{renderStars(r.rating)}</span>
-                  </div>
-                  {r.review_text && <p className="review-text">{r.review_text}</p>}
-                </div>
-              ))}
-              {token ? (
-                reviews[cafe.id]?.some(r => r.username === currentUsername) ? (
-                  <p className="login-nudge">You have already reviewed this cafe.</p>
-                ) : (
-                  <div className="review-form">
-                    <h4>Leave a Review</h4>
-                    <div className="form-field">
-                      <label className="form-label">Rating</label>
-                      <select
-                        className="form-select"
-                        value={formState[cafe.id]?.rating || ''}
-                        onChange={e => handleFormChange(cafe.id, 'rating', parseInt(e.target.value))}
-                      >
-                        <option value="">Select a rating</option>
-                        {[1,2,3,4,5].map(n => (
-                          <option key={n} value={n}>{n} star{n > 1 ? 's' : ''}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-field">
-                      <label className="form-label">Your thoughts</label>
-                      <textarea
-                        className="form-textarea"
-                        placeholder="What did you think of this cafe?"
-                        value={formState[cafe.id]?.review_text || ''}
-                        onChange={e => handleFormChange(cafe.id, 'review_text', e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-                    <button className="btn btn-primary btn-sm" onClick={() => handleSubmit(cafe.id)}>
-                      Submit Review
-                    </button>
-                    {message[cafe.id] && (
-                      <div className={`form-message ${message[cafe.id].type}`}>
-                        {message[cafe.id].text}
-                      </div>
-                    )}
-                  </div>
-                )
-              ) : (
-                <p className="login-nudge">
-                  <a href="/login">Log in</a> to leave a review.
-                </p>
-              )}
+
+            <div className="cafe-card-footer">
+              <span className="cafe-card-cta">
+                {cafe.review_count > 0
+                  ? `${renderStars(Math.round(cafe.avg_rating))} · ${cafe.review_count} review${cafe.review_count === 1 ? '' : 's'}`
+                  : 'No reviews yet'}
+              </span>
+              <span className="cafe-card-cta-link">View details <ArrowIcon /></span>
+            </div>
             </div>
           </div>
         ))}

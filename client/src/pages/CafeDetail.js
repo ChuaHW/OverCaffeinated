@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const SHELF_LABELS = {
+  want_to_visit: 'Want to Visit',
+  currently_exploring: 'Currently Exploring',
+  all_time_favourites: 'All-Time Favourites',
+};
+
 const StarIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -15,6 +21,16 @@ const PinIcon = () => (
   </svg>
 );
 
+const ShareIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="18" cy="5" r="3"/>
+    <circle cx="6" cy="12" r="3"/>
+    <circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </svg>
+);
+
 export default function CafeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -23,6 +39,8 @@ export default function CafeDetail() {
   const [formState, setFormState] = useState({ rating: '', review_text: '' });
   const [message, setMessage] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState(true);
+  const [shelfStatus, setShelfStatus] = useState(null);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const token = localStorage.getItem('token');
   const currentUsername = localStorage.getItem('username');
@@ -35,7 +53,25 @@ export default function CafeDetail() {
     axios.get(`http://localhost:3001/api/reviews/${id}`)
       .then(res => setReviews(res.data))
       .catch(err => console.error(err));
-  }, [id]);
+
+    if (token) {
+      axios.get('http://localhost:3001/api/shelf/mine', {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(res => {
+        const entry = res.data.find(item => String(item.cafe_id) === String(id));
+        setShelfStatus(entry ? entry.status : null);
+      }).catch(err => console.error(err));
+    }
+  }, [id, token]);
+
+  useEffect(() => {
+    if (!shareOpen) return;
+    const handleClick = (e) => {
+      if (!e.target.closest('.share-wrap')) setShareOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [shareOpen]);
 
   const parseTags = (tags) => tags ? tags.split(',').map(t => t.trim()) : [];
   const renderStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
@@ -63,6 +99,25 @@ export default function CafeDetail() {
     }
   };
 
+  const handleShelf = async (status) => {
+    try {
+      await axios.post('http://localhost:3001/api/shelf',
+        { cafe_id: id, status },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShelfStatus(status);
+    } catch (err) { console.error(err); }
+  };
+
+  const handleRemoveShelf = async () => {
+    try {
+      await axios.delete(`http://localhost:3001/api/shelf/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShelfStatus(null);
+    } catch (err) { console.error(err); }
+  };
+
   if (loading) return <div className="loading-screen">Loading…</div>;
   if (!cafe) return <div className="loading-screen">Cafe not found.</div>;
 
@@ -70,19 +125,40 @@ export default function CafeDetail() {
   const avg = averageRating();
   const alreadyReviewed = reviews.some(r => r.username === currentUsername);
 
+  const shareUrl = `${window.location.origin}/cafes/${cafe.id}`;
+  const shareText = `${cafe.name} — ${avg ? `${avg}★ from ${reviews.length} review${reviews.length === 1 ? '' : 's'}` : 'No ratings yet'}\n${cafe.address}`;
+  const whatsAppLink = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n\nCheck it out on OverCaffeinated: ${shareUrl}`)}`;
+  const telegramLink = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+
   return (
     <div className="cd-wrap">
       <div className="cd-header">
         <div className="cd-header-inner">
           <button className="cd-back" onClick={() => navigate('/cafes')}>← Back</button>
-          <div className="cd-header-content">
-            <h1 className="cd-name">{cafe.name}</h1>
-            <div className="cd-header-meta">
-              {avg
-                ? <span className="cd-avg-rating"><StarIcon /> {avg} <span className="cd-review-count">({reviews.length} review{reviews.length !== 1 ? 's' : ''})</span></span>
-                : <span className="cd-no-rating">No ratings yet</span>
-              }
-              {tags.map(tag => <span key={tag} className="cd-tag">{tag}</span>)}
+          <div className="cd-header-row">
+            <div className="cd-header-content">
+              <h1 className="cd-name">{cafe.name}</h1>
+              <div className="cd-header-meta">
+                {avg
+                  ? <span className="cd-avg-rating"><StarIcon /> {avg} <span className="cd-review-count">({reviews.length} review{reviews.length !== 1 ? 's' : ''})</span></span>
+                  : <span className="cd-no-rating">No ratings yet</span>
+                }
+              </div>
+            </div>
+            <div className="share-wrap">
+              <button
+                className="share-btn"
+                onClick={() => setShareOpen(o => !o)}
+                aria-label="Share this cafe"
+              >
+                <ShareIcon />
+              </button>
+              {shareOpen && (
+                <div className="share-menu">
+                  <a className="share-menu-item" href={whatsAppLink} target="_blank" rel="noopener noreferrer" onClick={() => setShareOpen(false)}>WhatsApp</a>
+                  <a className="share-menu-item" href={telegramLink} target="_blank" rel="noopener noreferrer" onClick={() => setShareOpen(false)}>Telegram</a>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -94,6 +170,26 @@ export default function CafeDetail() {
             <section className="cd-section">
               <h2 className="cd-section-title">Description</h2>
               <p className="cd-description">{cafe.description}</p>
+            </section>
+          )}
+
+          {token && (
+            <section className="cd-section">
+              <div className="shelf-bar">
+                <span className="shelf-label-text">My Shelf</span>
+                {Object.entries(SHELF_LABELS).map(([s, label]) => (
+                  <button
+                    key={s}
+                    onClick={() => handleShelf(s)}
+                    className={`shelf-btn${shelfStatus === s ? ' active' : ''}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+                {shelfStatus && (
+                  <button onClick={handleRemoveShelf} className="shelf-remove">✕ Remove</button>
+                )}
+              </div>
             </section>
           )}
 
@@ -162,6 +258,14 @@ export default function CafeDetail() {
               <span className="cd-info-icon"><PinIcon /></span>
               <span className="cd-info-text">{cafe.address || 'Not listed'}</span>
             </div>
+            {cafe.specialty && (
+              <div className="cd-info-row">
+                <div>
+                  <span className="cd-info-label">Specialty</span>
+                  <span className="cd-info-text">{cafe.specialty}</span>
+                </div>
+              </div>
+            )}
             {tags.length > 0 && (
               <div className="cd-info-row">
                 <div>
