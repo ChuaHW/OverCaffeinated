@@ -2,17 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 require('dotenv').config();
-
-const transporter = nodemailer.createTransport({
-  host: process.env.MAILTRAP_HOST,
-  port: process.env.MAILTRAP_PORT,
-  auth: {
-    user: process.env.MAILTRAP_USER,
-    pass: process.env.MAILTRAP_PASS,
-  },
-});
 
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
@@ -30,10 +21,11 @@ router.post('/forgot-password', async (req, res) => {
       [email, token, expiresAt]
     );
 
-    const resetLink = `http://localhost:3000/reset-password?token=${token}`;
+    const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM,
       to: email,
       subject: 'OverCaffeinated - Password Reset Request',
       html: `
