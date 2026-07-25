@@ -2,6 +2,8 @@
 
 A community-driven web platform for cafe enthusiasts to discover and review specialty cafes in Singapore.
 
+🔗 **Live site:** https://overcaffeinated.vercel.app
+
 ## Features
 - Cafe directory displaying a curated list of specialty cafes in Singapore
 - User authentication — create an account, log in, and log out
