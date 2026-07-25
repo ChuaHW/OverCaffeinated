@@ -73,7 +73,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', authMiddleware, requireOwner, upload.single('photo'), async (req, res) => {
   const { name, address, description, specialty, opening_time, closing_time } = req.body;
   if (!name) return res.status(400).json({ error: 'Cafe name is required' });
-  const image_url = req.file ? `http://localhost:3001/uploads/${req.file.filename}` : null;
+  const image_url = req.file ? req.file.path : null;
   try {
     const [result] = await db.query(
       `INSERT INTO cafes (name, address, description, specialty, image_url, opening_time, closing_time, owner_id)
@@ -95,7 +95,7 @@ router.put('/:id', authMiddleware, requireOwner, upload.single('photo'), async (
     if (existing[0].owner_id !== req.user.id) {
       return res.status(403).json({ error: 'You can only edit your own cafe listings' });
     }
-    const image_url = req.file ? `http://localhost:3001/uploads/${req.file.filename}` : existing[0].image_url;
+    const image_url = req.file ? req.file.path : existing[0].image_url;
     await db.query(
       `UPDATE cafes SET name = ?, address = ?, description = ?, specialty = ?, image_url = ?, opening_time = ?, closing_time = ?
        WHERE id = ?`,

@@ -33,7 +33,7 @@ router.put('/profile', authMiddleware, upload.single('avatar'), async (req, res)
   const { display_name, bio, preferred_drink } = req.body;
   try {
     if (req.file) {
-      const avatar_url = `http://localhost:3001/uploads/${req.file.filename}`;
+      const avatar_url = req.file.path;
       await db.query(
         'UPDATE users SET display_name = ?, bio = ?, preferred_drink = ?, avatar_url = ? WHERE id = ?',
         [display_name, bio, preferred_drink, avatar_url, req.user.id]
