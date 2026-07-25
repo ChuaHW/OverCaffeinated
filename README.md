@@ -11,7 +11,8 @@ A community-driven web platform for cafe enthusiasts to discover and review spec
 - Coffee Shelf — save cafes to a personal shelf organised by status: Want to Visit, Currently Exploring, and All-Time Favourites
 - Search and filtering — search cafes by name and filter by highest rating, most reviews and brew methods
 - User profiles — view your bio, preferred drink, submitted reviews, and Coffee Shelf in one place
-- Edit profile — update your display name, bio, and preferred drink
+- Edit profile — update your display name, bio, preferred drink, and profile photo
+- Cafe Owner Dashboard — register as a cafe owner to list, edit, and delete your own cafe listings, including photo uploads
 - Data Export — download a PDF report of your Coffee Shelf and review history from your profile page
 - Social Sharing — share a cafe with friends via WhatsApp or Telegram, complete with its name, rating, and a direct link back to it on OverCaffeinated
 
@@ -20,7 +21,8 @@ A community-driven web platform for cafe enthusiasts to discover and review spec
 - **Backend:** Node.js with Express
 - **Database:** MySQL
 - **Authentication:** JWT (JSON Web Tokens)
-- **Email Testing:** Mailtrap
+- **Email:** SendGrid
+- **Image Storage:** Cloudinary
 
 ## How to Run Locally
 
@@ -38,15 +40,24 @@ A community-driven web platform for cafe enthusiasts to discover and review spec
 2. Install dependencies: `npm install`
 3. Create a `.env` file with the following:
 ```
+PORT=3001
+CLIENT_URL=http://localhost:3000
+
 DB_HOST=127.0.0.1
+DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=your_mysql_password
 DB_NAME=overcaffeinated
+DB_SSL=false
+
 JWT_SECRET=your_jwt_secret
-MAILTRAP_HOST=sandbox.smtp.mailtrap.io
-MAILTRAP_PORT=2525
-MAILTRAP_USER=your_mailtrap_user
-MAILTRAP_PASS=your_mailtrap_password
+
+SENDGRID_API_KEY=your_sendgrid_api_key
+EMAIL_FROM=your_verified_sender_email
+
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 4. Start the server: `node index.js`
 
@@ -60,12 +71,11 @@ MAILTRAP_PASS=your_mailtrap_password
 1. Click "Reset it here" on the login page
 2. Enter your registered email address
 3. Click "Send Reset Link"
-4. Check your Mailtrap inbox for the reset email
+4. Check your email inbox for the reset email
 5. Click the reset link in the email
 6. Enter your new password and click "Reset Password"
 7. You will be redirected to the login page
 
 ### Notes
 - Reset links expire after 1 hour
-- Email testing is handled via Mailtrap during development
-- To view test emails, log into your Mailtrap inbox at mailtrap.io
+- Emails are sent via SendGrid — you'll need a SendGrid API key and a verified sender email set as `EMAIL_FROM`
