@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api';
 
 const SHELF_LABELS = {
   want_to_visit: 'Want to Visit',
@@ -46,16 +46,16 @@ export default function CafeDetail() {
   const currentUsername = localStorage.getItem('username');
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/api/cafes/${id}`)
+    axios.get(`/api/cafes/${id}`)
       .then(res => { setCafe(res.data); setLoading(false); })
       .catch(() => { setLoading(false); });
 
-    axios.get(`http://localhost:3001/api/reviews/${id}`)
+    axios.get(`/api/reviews/${id}`)
       .then(res => setReviews(res.data))
       .catch(err => console.error(err));
 
     if (token) {
-      axios.get('http://localhost:3001/api/shelf/mine', {
+      axios.get('/api/shelf/mine', {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => {
         const entry = res.data.find(item => String(item.cafe_id) === String(id));
@@ -94,13 +94,13 @@ export default function CafeDetail() {
       return;
     }
     try {
-      await axios.post('http://localhost:3001/api/reviews',
+      await axios.post('/api/reviews',
         { cafe_id: id, rating: formState.rating, review_text: formState.review_text },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMessage({ text: 'Review submitted!', type: 'success' });
       setFormState({ rating: '', review_text: '' });
-      const res = await axios.get(`http://localhost:3001/api/reviews/${id}`);
+      const res = await axios.get(`/api/reviews/${id}`);
       setReviews(res.data);
     } catch (err) {
       setMessage({ text: err.response?.data?.error || 'Failed to submit.', type: 'error' });
@@ -109,7 +109,7 @@ export default function CafeDetail() {
 
   const handleShelf = async (status) => {
     try {
-      await axios.post('http://localhost:3001/api/shelf',
+      await axios.post('/api/shelf',
         { cafe_id: id, status },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -119,7 +119,7 @@ export default function CafeDetail() {
 
   const handleRemoveShelf = async () => {
     try {
-      await axios.delete(`http://localhost:3001/api/shelf/${id}`, {
+      await axios.delete(`/api/shelf/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setShelfStatus(null);
@@ -129,7 +129,7 @@ export default function CafeDetail() {
   const handleDeleteReview = async (reviewId) => {
     if (!window.confirm('Delete this review? This cannot be undone.')) return;
     try {
-      await axios.delete(`http://localhost:3001/api/reviews/${reviewId}`, {
+      await axios.delete(`/api/reviews/${reviewId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setReviews(prev => prev.filter(r => r.id !== reviewId));

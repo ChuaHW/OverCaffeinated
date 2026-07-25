@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api';
 
 const SHELF_LABELS = {
   want_to_visit: 'Want to Visit',
@@ -59,12 +59,12 @@ function CafeList() {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/cafes')
+    axios.get('/api/cafes')
       .then(res => setCafes(res.data))
       .catch(err => console.error(err));
 
     if (token) {
-      axios.get('http://localhost:3001/api/shelf/mine', {
+      axios.get('/api/shelf/mine', {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => {
         const map = {};
@@ -86,7 +86,7 @@ function CafeList() {
   const handleShelf = async (e, cafeId, status) => {
     e.stopPropagation();
     try {
-      await axios.post('http://localhost:3001/api/shelf',
+      await axios.post('/api/shelf',
         { cafe_id: cafeId, status },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -97,7 +97,7 @@ function CafeList() {
   const handleRemoveShelf = async (e, cafeId) => {
     e.stopPropagation();
     try {
-      await axios.delete(`http://localhost:3001/api/shelf/${cafeId}`, {
+      await axios.delete(`/api/shelf/${cafeId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setShelfStatus(prev => {

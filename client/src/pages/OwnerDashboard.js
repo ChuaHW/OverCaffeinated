@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api';
 
 const CupIcon = () => (
   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -44,7 +44,7 @@ export default function OwnerDashboard() {
 
   const fetchCafes = () => {
     setLoading(true);
-    axios.get('http://localhost:3001/api/cafes/mine', {
+    axios.get('/api/cafes/mine', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => { setCafes(res.data); setLoading(false); })
@@ -103,12 +103,12 @@ export default function OwnerDashboard() {
 
     try {
       if (editingId) {
-        await axios.put(`http://localhost:3001/api/cafes/${editingId}`, data, {
+        await axios.put(`/api/cafes/${editingId}`, data, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setMessage({ text: 'Cafe listing updated!', type: 'success' });
       } else {
-        await axios.post('http://localhost:3001/api/cafes', data, {
+        await axios.post('/api/cafes', data, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setMessage({ text: 'Cafe listing created!', type: 'success' });
@@ -123,7 +123,7 @@ export default function OwnerDashboard() {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this cafe listing? This cannot be undone.')) return;
     try {
-      await axios.delete(`http://localhost:3001/api/cafes/${id}`, {
+      await axios.delete(`/api/cafes/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchCafes();
