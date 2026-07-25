@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('./db');
 const crypto = require('crypto');
-const { Resend } = require('resend');
+const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
 
 router.post('/forgot-password', async (req, res) => {
@@ -23,8 +23,8 @@ router.post('/forgot-password', async (req, res) => {
 
     const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    await sgMail.send({
       from: process.env.EMAIL_FROM,
       to: email,
       subject: 'OverCaffeinated - Password Reset Request',
